@@ -1,4 +1,6 @@
+import { editUrl } from '#abilities/main'
 import Url from '#models/url'
+import { Bouncer } from '@adonisjs/bouncer'
 import type { HttpContext } from '@adonisjs/core/http'
 import QRCode from 'qrcode'
 
@@ -34,6 +36,38 @@ const {url,shortUrl} = request.all()
       return view.render('pages/goToUrl',{parseUrlsToJSON})
     } catch (error) {
 
+    }
+  }
+
+  public async deleteUser({ params }:HttpContext){
+
+    const getUrl = params.urlId // on recupere l'id du client dans l'object params
+    
+
+    try {
+      const deleteUrl = await Url.findOrFail(getUrl)
+      await deleteUrl.delete()
+    } catch (error) {
+      
+    }
+    
+  }
+
+
+  public async editUrl({params,request,bouncer,response}:HttpContext){
+    const getUrl = params.urlId
+    const getNewUrl = request.all()
+
+
+    try {
+      const url = await Url.findByOrFail(getUrl)
+       if (!await bouncer.allows(editUrl, url)){
+        return response.forbidden('you cannot edit URL')
+      }
+      
+      await getNewUrl.save()
+    } catch (error) {
+      
     }
   }
 
